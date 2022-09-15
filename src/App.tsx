@@ -1,56 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import { Counter } from './features/counter/Counter';
-import './App.css';
+import { useEffect, useState } from "react";
+import "./App.css";
+import { Routes, Route, Link } from "react-router-dom";
+import Auth from "./features/auth/Auth";
+import { useAppDispatch, useAppSelector } from "./app/hooks";
+import { logOut, MeAsync } from "./features/auth/authSlice";
+import Films from "./features/films/Films";
 
 function App() {
+  const [modalOpen, setModalOpen] = useState<boolean>(true);
+  const dispatch = useAppDispatch();
+  const isLogIn =
+    !!useAppSelector((state) => state.auth.user) &&
+    !!localStorage.getItem("token");
+
+  useEffect(() => {
+    if (localStorage.getItem("token")) {
+      dispatch(MeAsync());
+    }
+  }, [dispatch]);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <Counter />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <span>
-          <span>Learn </span>
-          <a
-            className="App-link"
-            href="https://reactjs.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux
-          </a>
-          <span>, </span>
-          <a
-            className="App-link"
-            href="https://redux-toolkit.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Redux Toolkit
-          </a>
-          ,<span> and </span>
-          <a
-            className="App-link"
-            href="https://react-redux.js.org/"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            React Redux
-          </a>
-        </span>
+      {modalOpen && <Auth onClose={() => setModalOpen(false)} />}
+      <header className="navigation">
+        <nav>
+          <Link to="/">Home</Link>
+          {isLogIn && <Link to="films">Films</Link>}
+        </nav>
+        <div>
+          {isLogIn ? (
+            <span onClick={() => dispatch(logOut())}>Log Out</span>
+          ) : (
+            <span onClick={() => setModalOpen(true)}>Log In</span>
+          )}
+        </div>
       </header>
+      <Routes>
+        <Route path="/" element={<>Home</>} />
+        {isLogIn && <Route path="films" element={<Films/>} />}
+      </Routes>
     </div>
   );
 }
